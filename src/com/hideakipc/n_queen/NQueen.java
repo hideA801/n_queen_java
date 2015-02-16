@@ -1,50 +1,64 @@
 package com.hideakipc.n_queen;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class NQueen {
-    public static void main(String[] args) {
-        new NQueen().exe(args);
-    }
+    private static final int ARG_IS_DISP_BOARDS = 1;
+    private static final int ARG_QUEEN_SIZE = 0;
 
-    private void exe(String[] args) {
+    class Conf {
         boolean isDispBoard = false;
+        int boardSize = 0;
+
+        Conf(int size, boolean isDisp) {
+            this.boardSize = size;
+            this.isDispBoard = isDisp;
+        }
+    }
+
+    public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        int size = parse(args);
-        List<Board> results = CheckQueens(size);
-        dumpResult(results, start, isDispBoard);
-    }
-
-    private int parse(String[] args) {
-        if (args.length < 1) {
-            throw new IllegalArgumentException("引数が不正です。引数には数値を指定してください");
-        }
-        return Integer.parseInt(args[0]);
-    }
-
-    private void dumpResult(List<Board> results, long start, boolean isDispBoard) {
-        if(isDispBoard){
-            dispQueenPlacement(results);
-        }
-
-        System.out.println("total: " + results.size());
+        new NQueen().exe(args);
         long stop = System.currentTimeMillis();
         System.out.println("実行にかかった時間は " + (stop - start) + " ミリ秒です。");
     }
 
-    private void dispQueenPlacement(List<Board> results) {
+    private void exe(String[] args) {
+        Conf conf = parse(args);
+        Set<Board> results = getNQueensBoards(conf.boardSize);
+        dumpResult(results, conf.isDispBoard);
+    }
+
+    private Conf parse(String[] args) {
+        if (args.length < 1) {
+            throw new IllegalArgumentException("引数が不正です");
+        } else if (args.length < 2) {
+            return new Conf(Integer.parseInt(args[ARG_QUEEN_SIZE]), false);
+        }
+        return new Conf(Integer.parseInt(args[ARG_QUEEN_SIZE]), Boolean.valueOf(args[ARG_IS_DISP_BOARDS]));
+    }
+
+    private void dumpResult(Set<Board> results, boolean isDispBoard) {
+        if (isDispBoard) {
+            dispQueenPlacement(results);
+        }
+        System.out.println("total: " + results.size());
+    }
+
+    private void dispQueenPlacement(Set<Board> results) {
         for (Board borad : results) {
             System.out.println(borad);
             System.out.println();
         }
     }
 
-    private List<Board> CheckQueens(int size) {
-        List<Board> results = new ArrayList<>();
+    private Set<Board> getNQueensBoards(int size) {
+        Set<Board> results = new HashSet<>();
         for (int firstQueenY = 0; firstQueenY < size; firstQueenY++) {
-            List<Board> borads = getResult(firstQueenY, size);
+            Board board = new Board(firstQueenY, size);
+            Set<Board> borads = getComplateBoards(1, board);
             if (!borads.isEmpty()) {
                 results.addAll(borads);
             }
@@ -52,40 +66,22 @@ public class NQueen {
         return results;
     }
 
-    private List<Board> getResult(int firstY, int size) {
-        Board board = new Board(firstY, size);
-        return getComplateBorads(1, board);
-    }
-
-    private List<Board> getComplateBorads(int tryX, Board board) {
-        List<Integer> puttableY = getPuttableY(tryX, board);
-        int size = puttableY.size();
-        List<Board> list = new ArrayList<>();
-        if (size == 0 && board.size() == board.putQueenSize()) {
-            list.add(board);
-            return list;
+    private Set<Board> getComplateBoards(int tryX, Board board) {
+        Set<Board> complateBoards = new HashSet<>();
+        if (board.isComplateBoard()) {
+            complateBoards.add(board);
+            return complateBoards;
         }
+        List<Integer> puttableY = board.getPuttableY(tryX);
         for (Integer y : puttableY) {
             Board newBoard = board.cooy();
             newBoard.putQueen(y);
-            List<Board> boards = getComplateBorads(tryX + 1, newBoard);
-            if(!boards.isEmpty()){
-              list.addAll(boards);
+            Set<Board> boards = getComplateBoards(tryX + 1, newBoard);
+            if (!boards.isEmpty()) {
+                complateBoards.addAll(boards);
             }
         }
-        return list;
-    }
-
-    //TODO ここ早くできるかも
-    private List<Integer> getPuttableY(int tryX, Board board) {
-        Set<Integer> notPuts = board.getNotPutY(tryX);
-        List<Integer> list = new ArrayList<>();
-        for (int i = 0; i < board.size(); i++) {
-            if (!notPuts.contains(i)) {
-                list.add(i);
-            }
-        }
-        return list;
+        return complateBoards;
     }
 
 }

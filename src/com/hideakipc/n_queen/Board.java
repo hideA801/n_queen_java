@@ -6,33 +6,34 @@ import java.util.List;
 import java.util.Set;
 
 class Board {
+    private static final String LINE_BREAK = "\n";
     private static final String MARK = "●";
     private static final String SPACE = "○";
-    private int max;
-    private List<Integer> result = new ArrayList<Integer>();
+    private int boardSize;
+    private List<Integer> putQueenY = new ArrayList<Integer>();
 
     Board(int firstY, int size) {
-        this.max = size;
-        this.result.add(firstY);
+        this.boardSize = size;
+        this.putQueenY.add(firstY);
     }
 
     Board(List<Integer> list, int size) {
-        this.max = size;
-        this.result = list;
+        this.boardSize = size;
+        this.putQueenY = list;
     }
 
     void putQueen(int y) {
-        result.add(y);
+        putQueenY.add(y);
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int x : result) {
+        for (int x : putQueenY) {
             setSpace(sb, x);
             sb.append(MARK);
-            int restSpace = max - x - 1;
+            int restSpace = this.boardSize - x - 1;
             setSpace(sb, restSpace);
-            sb.append("\n");
+            sb.append(LINE_BREAK);
         }
         return sb.toString();
     }
@@ -45,31 +46,37 @@ class Board {
         }
     }
 
-    Set<Integer> getNotPutY(int tryX) {
-        Set<Integer> set = new HashSet<Integer>();
-        for (int x = 0; x < this.result.size(); x++) {
-            Integer y = this.result.get(x);
-            set.add(y);
+    List<Integer> getPuttableY(int tryX) {
+        Set<Integer> notPuttableYs = new HashSet<>();
+        for (int x = 0; x < this.putQueenY.size(); x++) {
+            Integer y = this.putQueenY.get(x);
             int distance = tryX - x;
             int slantY1 = y + distance;
             int slantY2 = y - distance;
-            set.add(slantY1);
-            set.add(slantY2);
+            notPuttableYs.add(y);
+            notPuttableYs.add(slantY1);
+            notPuttableYs.add(slantY2);
         }
-        return set;
+        List<Integer> puttableY = new ArrayList<>();
+        for (int i = 0; i < this.boardSize; i++) {
+            if (!notPuttableYs.contains(i)) {
+                puttableY.add(i);
+            }
+        }
+        return puttableY;
     }
 
     int size() {
-        return this.max;
-    }
-
-    int putQueenSize() {
-        return this.result.size();
+        return this.boardSize;
     }
 
     Board cooy() {
-        List<Integer> list = new ArrayList<>(this.result);
-        return new Board(list, this.max);
+        List<Integer> list = new ArrayList<>(this.putQueenY);
+        return new Board(list, this.boardSize);
+    }
+
+    boolean isComplateBoard() {
+        return this.putQueenY.size() == this.boardSize;
     }
 
 }
